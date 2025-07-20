@@ -85,7 +85,7 @@ class Style:
     def __init__(self, code):
         self.code = code
 
-    def __call__(self, target):
+    def __call__(self, target, str_idx=0):
         if not target:
             return target  # Handle falsey gracefully
         if isinstance(target, Style):
@@ -96,9 +96,9 @@ class Style:
             return f"{self.code}{target}{AnsiStyle.RESET.value}"
         if callable(target):
             def wrapped(*args, **kwargs):
-                if args and isinstance(args[0], str):
+                if args and isinstance(args[str_idx], str):
                     # style the args
-                    args = (self(args[0]),) + args[1:]
+                    args = args[:str_idx] + ((self(args[str_idx])),) + args[str_idx + 1:]
                 # invoke the target function
                 result = target(*args, **kwargs)
                 if isinstance(result, str):

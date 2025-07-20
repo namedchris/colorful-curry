@@ -85,6 +85,22 @@ In addition to printing, Colorful Curry supports strin literals and string-retur
 
 ---
 
+### Working with Side-Effects
+
+By convention, when a function accepts a string and uses it to provide a side-effect, the input string is typically the first positional argument, e.g.,
+
+```python
+print()
+```
+
+Colorful-Curry default behavior supports this convention. For the odd functions that expect a string in a different position by calling the style wih the index of the string argument:
+
+```python
+    RED(foo, str_idx=1)(42, "Why am I here?")
+```
+
+---
+
 ## ⚙️ Design Goals
 
 - **Readable syntax** with minimal overhead.
