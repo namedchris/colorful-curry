@@ -1,5 +1,4 @@
-from enum import Enum
-
+from functools import wraps
 from enum import StrEnum
 
 class AnsiStyle(StrEnum):
@@ -82,30 +81,32 @@ class AnsiStyle(StrEnum):
             if member.kind != "reset"
         )
 
-
 class Style:
     def __init__(self, code):
         self.code = code
 
     def __call__(self, target):
+        if not target:
+            return target  # Handle falsey gracefully
         if isinstance(target, Style):
-            # If target is another Style, concatinate them
+            # compose styles
             return Style(self.code + target.code)
-        elif callable(target):
-            # If target is a callable, try to wrap it with a style
-            def wrapped(*args, **kwargs):
-                # if target accepts a string, apply style to the first argument
-                if args and isinstance(args[0], str):
-                    return target(self(args[0]))
-                # target doesn't accept a string, call it and wrap the result
-                else:
-                    return self(target(*args, **kwargs))
-            return wrapped
-        elif isinstance(target, str):
-            # If target is a string, apply style directly
+        if isinstance(target, str):
+            #style input string
             return f"{self.code}{target}{AnsiStyle.RESET.value}"
+        if callable(target):
+            def wrapped(*args, **kwargs):
+                if args and isinstance(args[0], str):
+                    # style the args
+                    args = (self(args[0]),) + args[1:]
+                # invoke the target function
+                result = target(*args, **kwargs)
+                if isinstance(result, str):
+                    # style the result
+                    return f"{self.code}{result}{AnsiStyle.RESET.value}"
+                return result
+            return wrapped
         else:
-            # If target is not a string, callable, or style, raise an error
             raise TypeError(f"Cannot apply Style to {type(target).__name__}")
 
 
